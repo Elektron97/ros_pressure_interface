@@ -21,6 +21,9 @@ SYNCBYTE = rospy.get_param('serial_params/syncbyte')
 # Topic Names
 topic_name = '/pressures'
 
+class ChamberException(Exception):
+	pass
+
 class Pressure_Interface:
 	def __init__(self, n_chambers = DEFAULT_CHAMBERS):
 		# Arduino Obj
@@ -73,13 +76,17 @@ class Pressure_Interface:
 				self.arduino.write(s)
 	
 	def pressure_callback(self, msg):
+		# Log
 		rospy.loginfo("Writing in the Arduino the commanded pressures...")
-		
-		# Extract Data
-		if not self.n_chambers == len(msg.data):
-			rospy.logerr("aaaaaaaaaa")
-		else:
-			self.pressures = msg.data
+  
+  		# Extract Data
+		try:
+			if not self.n_chambers == len(msg.data):
+				raise ChamberException
+			else:
+				self.pressures = msg.data
+		except ChamberException:
+			rospy.logerr("The length of the message ({}) is not consinstent with the number of chambers ({}).".format(len(msg.data), self.n_chambers))
 
 		# Send to Arduino
 		self.write_pressure(self.pressures)
