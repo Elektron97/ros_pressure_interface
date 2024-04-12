@@ -24,8 +24,10 @@ topic_name = '/pressures'
 class ChamberException(Exception):
 	pass
 
-class Pressure_Interface:
+class Pressure_Interface(object):
+    
 	def __init__(self, n_chambers = DEFAULT_CHAMBERS):
+     
 		# Arduino Obj
 		self.arduino = self.set_communication()
 		
@@ -39,6 +41,7 @@ class Pressure_Interface:
 
 		# Define Pub/Sub objects
 		self.sub_obj = rospy.Subscriber(topic_name, Float32MultiArray, self.pressure_callback)
+
 
 	def set_communication(self):
 		try:
@@ -90,3 +93,23 @@ class Pressure_Interface:
 
 		# Send to Arduino
 		self.write_pressure(self.pressures)
+	
+ 
+	def __del__(self):
+    
+		# Set to 0 the number of chambers
+		self.n_chambers = 0
+
+		# Set to 0 Pressure Array
+		self.pressures = [0.0]*self.n_chambers
+		# Put to 0 every chambers
+		self.write_pressure(self.pressures)
+
+		if self.arduino:
+			self.arduino.close()
+    
+		if self.sub_obj:
+			self.sub_obj.unregister()
+
+		print("Object destroyed succesfully! ")
+
