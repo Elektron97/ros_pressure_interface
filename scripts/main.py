@@ -4,7 +4,7 @@ from ros_pressure_interface.pressure_interface import Pressure_Interface
 
 def main():
 	rospy.init_node("control_box_interface", anonymous=True)
-	Pressure_Interface()
+	Pressure_Interface(9)
 	rospy.spin()
 
 if __name__ == '__main__':

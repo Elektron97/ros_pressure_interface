@@ -35,7 +35,7 @@ class Pressure_Interface(object):
 		self.n_chambers = n_chambers
 
 		# Define Pressure Array
-		self.pressures = [0.0]*self.n_chambers
+		self.pressures = [PMAX]*self.n_chambers
 		# Put to 0 every chambers
 		self.write_pressure(self.pressures)
 
@@ -96,10 +96,6 @@ class Pressure_Interface(object):
 	
  
 	def __del__(self):
-    
-		# Set to 0 the number of chambers
-		self.n_chambers = 0
-
 		# Set to 0 Pressure Array
 		self.pressures = [0.0]*self.n_chambers
 		# Put to 0 every chambers
