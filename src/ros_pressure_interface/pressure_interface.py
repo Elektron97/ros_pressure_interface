@@ -8,7 +8,13 @@ import serial
 import struct
 
 ## Global Variables
-DEFAULT_CHAMBERS = 6
+DEFAULT_CHAMBERS	= 6		# Default number of chambers
+SLEEP_TIME 			= 1 	# Sleep Time for the deconstructor - in seconds
+MAX_DIGIT			= 255   # Max value of pressure in digit 
+MIN_DIGIT			= 10   	# Min value of pressure in digit 
+
+
+
 
 PMAX = rospy.get_param('hardware_params/pmax')
 
@@ -96,11 +102,15 @@ class Pressure_Interface(object):
 	
  
 	def __del__(self):
+     
 		# Set to 0 Pressure Array
 		self.pressures = [0.0]*self.n_chambers
 		# Put to 0 every chambers
 		self.write_pressure(self.pressures)
+  
+		rospy.sleep(SLEEP_TIME) # Sleeps for SLEEP_TIME - in seconds
 
+  
 		if self.arduino:
 			self.arduino.close()
     
@@ -108,4 +118,43 @@ class Pressure_Interface(object):
 			self.sub_obj.unregister()
 
 		print("Object destroyed succesfully! ")
+  
+  
+  
+	def bar_to_digit(pressures):
+     
+	#####################################################################
+	# 																	#
+	#			Function to convert the pressure from bar to digit:		#
+	#																	#
+	#	p_digit = (max_digit - min_digit) * (p / max_bar) + min_digit	#
+	#																	#
+	#				p_digit 	= pressure value in digit				#
+	#				p 			= pressure value in bar					#
+	# 				max_digit 	= max value of pressure in digit		#
+	# 				min_digit	= min value of pressure in digit		#
+	#				max_bar		= max value of pressure in bar			#
+	#				int() = function to convert from double to int  	#
+	#																	#
+	#####################################################################
+ 
+		# Initialization
+		pressures_digit = [0] * 9
+
+		# Conversion
+		pressures_digit[0] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[0] / 1.68) + MIN_DIGIT)
+		pressures_digit[1] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[1] / 1.68) + MIN_DIGIT)
+		pressures_digit[2] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[2] / 1.68) + MIN_DIGIT)
+  
+		pressures_digit[3] = int((MAX_DIGIT - 15) * (pressures[3] / 1.08) + 15)
+  
+		pressures_digit[4] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[4] / 1.68) + MIN_DIGIT)
+		pressures_digit[5] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[5] / 1.68) + MIN_DIGIT)
+
+		pressures_digit[6] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[6] / 4.4) + MIN_DIGIT)
+		pressures_digit[7] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[7] / 4.4) + MIN_DIGIT)
+
+		pressures_digit[8] = int((4095 - 50) * (pressures[8] / 1.02) + 50)
+		
+
 
