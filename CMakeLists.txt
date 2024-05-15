@@ -12,7 +12,6 @@ find_package(Eigen3 REQUIRED)
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
-  ${CasADi_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 
@@ -33,7 +32,7 @@ catkin_install_python(
 )
 
 add_executable(test_pressure  
-  src/test_pressure.cpp
+  src/ros_pressure_interface/test_pressure.cpp
 )
 
 target_link_libraries(test_pressure 
@@ -43,7 +42,6 @@ target_link_libraries(test_pressure
 add_dependencies(test_pressure
   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
   ${catkin_EXPORTED_TARGETS})
-
 
 
 
