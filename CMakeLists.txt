@@ -31,17 +31,17 @@ catkin_install_python(
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-add_executable(test_pressure  
-  src/ros_pressure_interface/test_pressure.cpp
-)
+# add_executable(test_pressure  
+#   src/ros_pressure_interface/test_pressure.cpp
+# )
 
-target_link_libraries(test_pressure 
-  ${catkin_LIBRARIES} 
-  ${ROS_LIBRARIES} ${CASADI_LIB})
+# target_link_libraries(test_pressure 
+#   ${catkin_LIBRARIES} 
+#   ${ROS_LIBRARIES} ${CASADI_LIB})
 
-add_dependencies(test_pressure
-  ${${PROJECT_NAME}_EXPORTED_TARGETS} 
-  ${catkin_EXPORTED_TARGETS})
+# add_dependencies(test_pressure
+#   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+#   ${catkin_EXPORTED_TARGETS})
 
 
 

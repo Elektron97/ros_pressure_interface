@@ -33,8 +33,7 @@ class ChamberException(Exception):
 
 class Pressure_Interface(object):
     
-	def __init__(self, n_chambers = DEFAULT_CHAMBERS):
-     
+	def __init__(self, n_chambers = DEFAULT_CHAMBERS):     
 		# Arduino Obj
 		self.arduino = self.set_communication()
 		
@@ -43,7 +42,8 @@ class Pressure_Interface(object):
 
 		# Define Pressure Array
 		self.pressures = [0.0]*self.n_chambers
-		# Put to 0 every chambers
+		
+  		# Put to 0 every chambers
 		self.write_pressure(self.pressures)
 
 		# Define Pub/Sub objects
@@ -77,7 +77,6 @@ class Pressure_Interface(object):
 		pressures = self.saturation(pressures)
 
   		# Conversion from bar to digit
-		digit_pressures = [0]*DEFAULT_CHAMBERS # Vector initialization
 		digit_pressures = self.bar2digit(pressures)
 		
 		# Add syncbyte & create packet
@@ -89,8 +88,7 @@ class Pressure_Interface(object):
 				self.arduino.write(s)
 	
  
-	def saturation(self, pressures):
-		
+	def saturation(self, pressures):		
 		# Safe Saturation
 		for i in range(len(pressures)):
 
@@ -118,7 +116,7 @@ class Pressure_Interface(object):
 			if not self.n_chambers == len(msg.data):
 				raise ChamberException
 			else:
-				self.pressures = msg.data
+				self.pressures = list(msg.data)
 		except ChamberException:
 			rospy.logerr("The length of the message ({}) is not consinstent with the number of chambers ({}).".format(len(msg.data), self.n_chambers))
 
@@ -163,12 +161,10 @@ class Pressure_Interface(object):
 		#				int() = function to convert from double to int  	#
 		#																	#
 		#####################################################################
- 
-		# Initialization
-		digit = [0] * DEFAULT_CHAMBERS
-		
-		for i in range(DEFAULT_CHAMBERS):
-			digit[i] = int((MAX_DIGIT[i] - MIN_DIGIT[i]) * (bar[i] / PMAX[i]) + MIN_DIGIT[i])
+		digit = []		
+  
+		for i in range(self.n_chambers):
+			digit.append(int((MAX_DIGIT[i] - MIN_DIGIT[i]) * (bar[i] / PMAX[i]) + MIN_DIGIT[i]))
         
 		return digit
 
