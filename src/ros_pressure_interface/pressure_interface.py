@@ -11,7 +11,8 @@ import struct
 DEFAULT_CHAMBERS	= 6		# Default number of chambers
 SLEEP_TIME 			= 1 	# Sleep Time for the deconstructor - in seconds
 MAX_DIGIT			= 255   # Max value of pressure in digit 
-MIN_DIGIT			= 10   	# Min value of pressure in digit 
+MIN_DIGIT			= 10   	# Min value of pressure in digit
+CONTROLBOX_CHAMBERS = 9		# CONRTROL BOX 9 CHAMBERS
 
 
 
@@ -41,7 +42,7 @@ class Pressure_Interface(object):
 		self.n_chambers = n_chambers
 
 		# Define Pressure Array
-		self.pressures = [PMAX]*self.n_chambers
+		self.pressures = [0.0]*self.n_chambers
 		# Put to 0 every chambers
 		self.write_pressure(self.pressures)
 
@@ -71,10 +72,8 @@ class Pressure_Interface(object):
 		# due to the callback or other types of interruptions.	#
 		#########################################################
 
-		# Safe Saturation
-		for chamber in pressures:
-			if chamber > PMAX:
-				chamber = PMAX
+		# # Saturation
+		# pressures = self.saturation(pressures)
 		
 		# Add syncbyte & create packet
 		packet = np.array([SYNCBYTE] + pressures, dtype = np.uint8)
@@ -83,7 +82,14 @@ class Pressure_Interface(object):
 			for value in packet: # Sending Data
 				s = struct.pack('!{0}B'.format(len(packet)), *packet)
 				self.arduino.write(s)
-	
+	"""
+	def saturation(self, pressures):
+		# Safe Saturation
+		for chamber in pressures:
+			if chamber > PMAX:
+				chamber = PMAX
+		return pressures
+	"""
 	def pressure_callback(self, msg):
 		# Log
 		rospy.loginfo("Writing in the Arduino the commanded pressures...")
@@ -100,7 +106,6 @@ class Pressure_Interface(object):
 		# Send to Arduino
 		self.write_pressure(self.pressures)
 	
- 
 	def __del__(self):
      
 		# Set to 0 Pressure Array
@@ -118,43 +123,65 @@ class Pressure_Interface(object):
 			self.sub_obj.unregister()
 
 		print("Object destroyed succesfully! ")
-  
-  
-  
-	def bar_to_digit(pressures):
-     
-	#####################################################################
-	# 																	#
-	#			Function to convert the pressure from bar to digit:		#
-	#																	#
-	#	p_digit = (max_digit - min_digit) * (p / max_bar) + min_digit	#
-	#																	#
-	#				p_digit 	= pressure value in digit				#
-	#				p 			= pressure value in bar					#
-	# 				max_digit 	= max value of pressure in digit		#
-	# 				min_digit	= min value of pressure in digit		#
-	#				max_bar		= max value of pressure in bar			#
-	#				int() = function to convert from double to int  	#
-	#																	#
-	#####################################################################
- 
-		# Initialization
-		pressures_digit = [0] * 9
-
-		# Conversion
-		pressures_digit[0] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[0] / 1.68) + MIN_DIGIT)
-		pressures_digit[1] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[1] / 1.68) + MIN_DIGIT)
-		pressures_digit[2] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[2] / 1.68) + MIN_DIGIT)
-  
-		pressures_digit[3] = int((MAX_DIGIT - 15) * (pressures[3] / 1.08) + 15)
-  
-		pressures_digit[4] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[4] / 1.68) + MIN_DIGIT)
-		pressures_digit[5] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[5] / 1.68) + MIN_DIGIT)
-
-		pressures_digit[6] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[6] / 4.4) + MIN_DIGIT)
-		pressures_digit[7] = int((MAX_DIGIT - MIN_DIGIT) * (pressures[7] / 4.4) + MIN_DIGIT)
-
-		pressures_digit[8] = int((4095 - 50) * (pressures[8] / 1.02) + 50)
 		
+# class ControlBox9(Pressure_Interface):
+# 	def __init__(self):
+# 		super().__init__(CONTROLBOX_CHAMBERS)
 
+# 	def bar2digit(self, bar):
+# 		#####################################################################
+# 		# 																	#
+# 		#			Function to convert the pressure from bar to digit:		#
+# 		#																	#
+# 		#	p_digit = (max_digit - min_digit) * (p / max_bar) + min_digit	#
+# 		#																	#
+# 		#				p_digit 	= pressure value in digit				#
+# 		#				p 			= pressure value in bar					#
+# 		# 				max_digit 	= max value of pressure in digit		#
+# 		# 				min_digit	= min value of pressure in digit		#
+# 		#				max_bar		= max value of pressure in bar			#
+# 		#				int() = function to convert from double to int  	#
+# 		#																	#
+# 		#####################################################################
+ 
+# 		# Initialization
+# 		pressures_digit = [0] * 9
 
+# 		# Conversion
+# 		pressures_digit[0] = int((MAX_DIGIT - MIN_DIGIT) * (bar[0] / 1.68) + MIN_DIGIT)
+# 		pressures_digit[1] = int((MAX_DIGIT - MIN_DIGIT) * (bar[1] / 1.68) + MIN_DIGIT)
+# 		pressures_digit[2] = int((MAX_DIGIT - MIN_DIGIT) * (bar[2] / 1.68) + MIN_DIGIT)
+  
+# 		pressures_digit[3] = int((MAX_DIGIT - 15) * (bar[3] / 1.08) + 15)
+  
+# 		pressures_digit[4] = int((MAX_DIGIT - MIN_DIGIT) * (bar[4] / 1.68) + MIN_DIGIT)
+# 		pressures_digit[5] = int((MAX_DIGIT - MIN_DIGIT) * (bar[5] / 1.68) + MIN_DIGIT)
+
+# 		pressures_digit[6] = int((MAX_DIGIT - MIN_DIGIT) * (bar[6] / 4.4) + MIN_DIGIT)
+# 		pressures_digit[7] = int((MAX_DIGIT - MIN_DIGIT) * (bar[7] / 4.4) + MIN_DIGIT)
+
+# 		pressures_digit[8] = int((4095 - 50) * (bar[8] / 1.02) + 50)
+
+# 	def saturation(self, pressures):
+# 		# For now: MIN_BAR = 0
+# 		min_pressures = [0]*self.n_chambers
+# 		max_pressures = [1.68, 1.68, 1.68, 1.08, 1.68, 1.68, 4.4, 4.4, 1.02]
+		
+# 		# Safe Saturation
+# 		for i in range(len(pressures)):
+
+# 			# Saturation on max value
+# 			if pressures[i] > max_pressures[i]:
+# 				pressures[i] = max_pressures[i]
+			
+# 			# Deadzone
+# 			elif pressures[i] < min_pressures[i]:
+# 				pressures[i] = min_pressures[i]
+			
+# 			else:
+# 				pass
+
+# 		return pressures
+	
+# 	def write_pressure(self, pressures):
+# 		super().write_pressure(self.bar2digit(self.saturation(pressures)))
