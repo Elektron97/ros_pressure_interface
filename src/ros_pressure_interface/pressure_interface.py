@@ -8,8 +8,8 @@ import serial
 import struct
 
 ## Global Variables
-DEFAULT_CHAMBERS	= 9		# Default number of chambers
-SLEEP_TIME 			= 1 	# Sleep Time for the deconstructor - in seconds
+DEFAULT_CHAMBERS	= 10		# Default number of chambers
+SLEEP_TIME 			= 0 	# Sleep Time for the deconstructor - in seconds
 
 
 # Parameter for hardware setup 
@@ -74,13 +74,13 @@ class Pressure_Interface(object):
 		#########################################################
 
 		# Saturation
-		pressures = self.saturation(pressures)
+		# pressures = self.saturation(pressures)
 
   		# Conversion from bar to digit
-		digit_pressures = self.bar2digit(pressures)
+		# digit_pressures = self.bar2digit(pressures)
 		
 		# Add syncbyte & create packet
-		packet = np.array([SYNCBYTE] + digit_pressures, dtype = np.uint8)
+		packet = np.array([SYNCBYTE] + pressures, dtype = np.uint8)
 
 		if self.arduino.isOpen():
 			for value in packet: # Sending Data
@@ -131,9 +131,6 @@ class Pressure_Interface(object):
 		self.pressures = [0.0]*self.n_chambers
 		# Put to 0 every chambers
 		self.write_pressure(self.pressures)
-  
-		rospy.sleep(SLEEP_TIME) # Sleeps for SLEEP_TIME - in seconds
-
   
 		if self.arduino:
 			self.arduino.close()
