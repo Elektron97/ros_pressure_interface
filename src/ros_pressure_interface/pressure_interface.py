@@ -8,7 +8,7 @@ import serial
 import struct
 
 ## Global Variables
-DEFAULT_CHAMBERS	= 10		# Default number of chambers
+DEFAULT_CHAMBERS	= 9		# Default number of chambers
 SLEEP_TIME 			= 0 	# Sleep Time for the deconstructor - in seconds
 
 
@@ -73,19 +73,27 @@ class Pressure_Interface(object):
 		# due to the callback or other types of interruptions.	#
 		#########################################################
 
-		# Saturation
-		# pressures = self.saturation(pressures)
-
-  		# Conversion from bar to digit
-		# digit_pressures = self.bar2digit(pressures)
-		
 		# Add syncbyte & create packet
-		packet = np.array([SYNCBYTE] + pressures, dtype = np.uint8)
+		packet = np.array([SYNCBYTE] + self.float2ArduinoMsg(pressures), dtype = np.uint8)
 
 		if self.arduino.isOpen():
 			for value in packet: # Sending Data
 				s = struct.pack('!{0}B'.format(len(packet)), *packet)
 				self.arduino.write(s)
+
+	def float2ArduinoMsg(self, pressures):
+		arduino_msg = pressures
+		v9_bin = format(int(arduino_msg[-1]), '016b')
+
+  		# Extract Words
+		v9H = int(v9_bin[:8], 2)
+		v9L = int(v9_bin[8:], 2)
+  
+		# Update Arduino msg
+		arduino_msg[-1] = v9H
+		arduino_msg.append(v9L)
+  
+		return arduino_msg
 	
  
 	def saturation(self, pressures):		
