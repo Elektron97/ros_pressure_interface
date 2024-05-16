@@ -7,6 +7,4 @@
     <!-- /// Nodes /// -->
     <!-- Launch Arduino Interface -->
     <node pkg="ros_pressure_interface" type="main.py" name="arduino_interface" output="screen"/>
-   <node pkg="ros_pressure_interface" type="test_pressure" name="test_pressure" output="screen"/>
-
 </launch>
