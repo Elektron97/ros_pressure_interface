@@ -72,26 +72,30 @@ class Pressure_Interface(object):
 		# during the execution of the methods,					#
 		# due to the callback or other types of interruptions.	#
 		#########################################################
-
+  
+		# Saturatiom & Convert in Digit (10-255 | 10-4095)
+		digit_pressures = self.bar2digit(self.saturation(pressures))
+  
 		# Add syncbyte & create packet
-		packet = np.array([SYNCBYTE] + self.float2ArduinoMsg(pressures), dtype = np.uint8)
+		packet = np.array([SYNCBYTE] + self.float2ArduinoMsg(digit_pressures), dtype = np.uint8)
 
 		if self.arduino.isOpen():
 			for value in packet: # Sending Data
 				s = struct.pack('!{0}B'.format(len(packet)), *packet)
 				self.arduino.write(s)
 
+
 	def float2ArduinoMsg(self, pressures):
 		arduino_msg = pressures
 		v9_bin = format(int(arduino_msg[-1]), '016b')
-
+  
   		# Extract Words
 		v9H = int(v9_bin[:8], 2)
 		v9L = int(v9_bin[8:], 2)
   
 		# Update Arduino msg
-		arduino_msg[-1] = v9H
-		arduino_msg.append(v9L)
+		arduino_msg[-1] = v9L
+		arduino_msg.append(v9H)
   
 		return arduino_msg
 	
@@ -102,12 +106,14 @@ class Pressure_Interface(object):
 
 			# Saturation on max value
 			if pressures[i] > PMAX[i]:
+				rospy.logwarn("Commanded Pressures higher than the Max Pressure. Saturating...")
 				pressures[i] = PMAX[i]
-			
+
 			# Deadzone
 			elif pressures[i] < PMIN[i]:
+				rospy.logwarn("Commanded Pressures lower than the Min Pressure. Saturating...")
 				pressures[i] = PMIN[i]
-			
+				
 			else:
 				pass
 
