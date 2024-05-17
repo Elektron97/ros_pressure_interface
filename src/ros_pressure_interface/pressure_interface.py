@@ -74,7 +74,7 @@ class Pressure_Interface(object):
 		#########################################################
   
 		# Saturatiom & Convert in Digit (10-255 | 10-4095)
-		digit_pressures = self.bar2digit(self.saturation(pressures))
+		digit_pressures = self.bar2digit(self.safe_saturation(pressures))
   
 		# Add syncbyte & create packet
 		packet = np.array([SYNCBYTE] + self.float2ArduinoMsg(digit_pressures), dtype = np.uint8)
@@ -113,6 +113,26 @@ class Pressure_Interface(object):
 			elif pressures[i] < PMIN[i]:
 				rospy.logwarn("Commanded Pressures lower than the Min Pressure. Saturating...")
 				pressures[i] = PMIN[i]
+				
+			else:
+				pass
+
+		return pressures
+
+ 
+	def safe_saturation(self, pressures):		
+		# Safe Saturation
+		for i in range(len(pressures)):
+
+			# Saturation on max value
+			if pressures[i] > 1:
+				rospy.logwarn("Commanded Pressures higher than the Max Pressure. Saturating...")
+				pressures[i] = 1
+
+			# Deadzone
+			elif pressures[i] < 0:
+				rospy.logwarn("Commanded Pressures lower than the Min Pressure. Saturating...")
+				pressures[i] = 0
 				
 			else:
 				pass
