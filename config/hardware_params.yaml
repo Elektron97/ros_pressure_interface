@@ -1,2 +1,2 @@
 hardware_params:
-  pmax:   0.0 #Max Pressure
+  pmax:   3.5 #Max Pressure
