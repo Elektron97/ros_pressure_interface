@@ -10,6 +10,8 @@ import struct
 ## Global Variables
 DEFAULT_CHAMBERS	= 6								# Default number of chambers
 PMAX = rospy.get_param('hardware_params/pmax')
+DIGIT_MAX = rospy.get_param('hardware_params/digit_max')
+PSAFE_MAX = rospy.get_param('hardware_params/psafe')
 
 # Serial Communication
 BAUDRATE = rospy.get_param('serial_params/baudrate')
@@ -34,7 +36,7 @@ class Pressure_Interface(object):
 		self.n_chambers = n_chambers
 
 		# Define Pressure Array
-		self.pressures = [PMAX]*self.n_chambers
+		self.pressures = [0.0]*self.n_chambers
 		# Put to 0 every chambers
 		self.write_pressure(self.pressures)
 
@@ -63,13 +65,19 @@ class Pressure_Interface(object):
 		# due to the callback or other types of interruptions.	#
 		#########################################################
 
-		# Safe Saturation
-		for chamber in pressures:
-			if chamber > PMAX:
-				chamber = PMAX
+		# Create new variable
+		digit_pressures = pressures.copy()
 		
+		# Safe Saturation & Conversion from bar to digit
+		for i in range(len(digit_pressures)):
+			if digit_pressures[i] > PSAFE_MAX:
+				digit_pressures[i] = PSAFE_MAX
+
+			# Conversion in Digit
+			digit_pressures[i] *= (DIGIT_MAX/PMAX)
+
 		# Add syncbyte & create packet
-		packet = np.array([SYNCBYTE] + pressures, dtype = np.uint8)
+		packet = np.array([SYNCBYTE] + digit_pressures, dtype = np.uint8)
 
 		if self.arduino.isOpen():
 			for value in packet: # Sending Data
@@ -85,7 +93,7 @@ class Pressure_Interface(object):
 			if not self.n_chambers == len(msg.data):
 				raise ChamberException
 			else:
-				self.pressures = msg.data
+				self.pressures = list(msg.data)
 		except ChamberException:
 			rospy.logerr("The length of the message ({}) is not consinstent with the number of chambers ({}).".format(len(msg.data), self.n_chambers))
 

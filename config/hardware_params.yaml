@@ -1,2 +1,8 @@
 hardware_params:
-  pmax:   3.5 #Max Pressure
+  pmax:   4.0   # Max Pressure [bar]
+
+  # Conversion from Digit to Bar
+  digit_max: 32.0 # [digit]
+
+  # Safe Saturation
+  psafe: 0.3  # [bar]
