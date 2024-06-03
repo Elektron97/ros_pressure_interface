@@ -8,9 +8,7 @@ import serial
 import struct
 
 ## Global Variables
-DEFAULT_CHAMBERS	= 9		# Default number of chambers
-SLEEP_TIME 			= 0 	# Sleep Time for the deconstructor - in seconds
-
+DEFAULT_CHAMBERS	= 6		# Default number of chambers
 
 # Parameter for hardware setup 
 PMAX      = rospy.get_param('hardware_params/pmax')
@@ -18,6 +16,8 @@ PMIN      = rospy.get_param('hardware_params/pmin')
 MAX_DIGIT = rospy.get_param('hardware_params/digit_max')
 MIN_DIGIT = rospy.get_param('hardware_params/digit_min')
 
+# Safe Saturation
+P_SAFE 	= 1.0
 
 # Serial Communication
 BAUDRATE = rospy.get_param('serial_params/baudrate')
@@ -77,28 +77,12 @@ class Pressure_Interface(object):
 		digit_pressures = self.bar2digit(self.safe_saturation(pressures))
   
 		# Add syncbyte & create packet
-		packet = np.array([SYNCBYTE] + self.float2ArduinoMsg(digit_pressures), dtype = np.uint8)
+		packet = np.array([SYNCBYTE] + digit_pressures, dtype = np.uint8)
 
 		if self.arduino.isOpen():
 			for value in packet: # Sending Data
 				s = struct.pack('!{0}B'.format(len(packet)), *packet)
 				self.arduino.write(s)
-
-
-	def float2ArduinoMsg(self, pressures):
-		arduino_msg = pressures
-		v9_bin = format(int(arduino_msg[-1]), '016b')
-  
-  		# Extract Words
-		v9H = int(v9_bin[:8], 2)
-		v9L = int(v9_bin[8:], 2)
-  
-		# Update Arduino msg
-		arduino_msg[-1] = v9L
-		arduino_msg.append(v9H)
-  
-		return arduino_msg
-	
  
 	def saturation(self, pressures):		
 		# Safe Saturation
@@ -125,9 +109,9 @@ class Pressure_Interface(object):
 		for i in range(len(pressures)):
 
 			# Saturation on max value
-			if pressures[i] > 1:
+			if pressures[i] > P_SAFE:
 				rospy.logwarn("Commanded Pressures higher than the Max Pressure. Saturating...")
-				pressures[i] = 1
+				pressures[i] = P_SAFE
 
 			# Deadzone
 			elif pressures[i] < 0:
