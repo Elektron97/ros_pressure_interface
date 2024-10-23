@@ -104,7 +104,7 @@ class Pressure_Interface(object):
 		# Safe Saturation
 		for i in range(len(pressures)):
 
-			# Saturation on max value
+			# Saturation on max valu
 			if pressures[i] > PMAX[i]:
 				rospy.logwarn("Commanded Pressures higher than the Max Pressure. Saturating...")
 				pressures[i] = PMAX[i]
