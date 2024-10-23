@@ -125,9 +125,9 @@ class Pressure_Interface(object):
 		for i in range(len(pressures)):
 
 			# Saturation on max value
-			if pressures[i] > 1:
+			if pressures[i] > 1.4:
 				rospy.logwarn("Commanded Pressures higher than the Max Pressure. Saturating...")
-				pressures[i] = 1
+				pressures[i] = 1.4
 
 			# Deadzone
 			elif pressures[i] < 0:
